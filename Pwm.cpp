@@ -7,13 +7,15 @@ using namespace std;
 void* __loop__(void* data)
 {
 	Pwm* pwm = (Pwm*)data;
-	unsigned long nextTime = micros() + pwm->highTime; //ÉèÖÃÒ»¸öÊ±¼ä½Úµã
+	unsigned long nextTime = micros() + pwm->highTime; //è®¾ç½®ä¸€ä¸ªæ—¶é—´èŠ‚ç‚¹
 	bool mode_high = true;
 	digitalWrite(pwm->pin, HIGH);
 	while (1)
 	{
+		if (!pwm->running)
+			continue;
 		unsigned long current = micros();
-		if (current >= nextTime) //Èç¹ûµ±Ç°Ê±¼äÒÑ¾­´óÓÚ½ÚµãÊ±¼ä£¬·´×ªµçÆ½Í¬Ê±ÉèÖÃĞÂµÄÊ±¼ä½Úµã
+		if (current >= nextTime) //å¦‚æœå½“å‰æ—¶é—´å·²ç»å¤§äºèŠ‚ç‚¹æ—¶é—´ï¼Œåè½¬ç”µå¹³åŒæ—¶è®¾ç½®æ–°çš„æ—¶é—´èŠ‚ç‚¹
 		{
 			if (mode_high)
 			{
@@ -29,7 +31,7 @@ void* __loop__(void* data)
 			}
 		}
 	}
-	//ÎªºÎ²»ÓÃËÄĞĞµÄ·½²¨Êä³ö£¿ÒòÎªÊµ²â·¢ÏÖdigitalWriteºÄÊ±²»¿ÉºöÂÔ£¡Í¬Ñù¶¼ÊÇ100%µÄCPUºËĞÄÕ¼ÓÃ£¬ÕâÑùµÄĞ§¹û¸üºÃÒ»µã...
+	//ä¸ºä½•ä¸ç”¨å››è¡Œçš„æ–¹æ³¢è¾“å‡ºï¼Ÿå› ä¸ºå®æµ‹å‘ç°digitalWriteè€—æ—¶ä¸å¯å¿½ç•¥ï¼åŒæ ·éƒ½æ˜¯100%çš„CPUæ ¸å¿ƒå ç”¨ï¼Œè¿™æ ·çš„æ•ˆæœæ›´å¥½ä¸€ç‚¹...
 	return nullptr;
 }
 
@@ -39,7 +41,7 @@ void Pwm::start()
 	pthread_attr_init(&attr);
 	pthread_attr_setschedpolicy(&attr, SCHED_RR);
 	sched_param p;
-	p.sched_priority = 10; //Ïß³ÌÓÅÏÈ¼¶10
+	p.sched_priority = 10; //çº¿ç¨‹ä¼˜å…ˆçº§10
 	pthread_attr_setschedparam(&attr, &p);
 	pthread_create(&thread, &attr, __loop__, this);
 	pthread_attr_destroy(&attr);
